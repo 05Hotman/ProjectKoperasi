@@ -24,10 +24,14 @@ return new class extends Migration
             $table->string('phone')->nullable()->unique();
             $table->string('last_education')->nullable();
             $table->string('profession')->nullable();
-            $table->enum('status', ['active', 'blacklist'])->default('active');
+            $table->enum('status', ['active','nonactive', 'blacklist'])->default('nonactive');
             $table->string('photo')->nullable();
             $table->dateTime('joined_at')->nullable();
             $table->timestamps();
+        });
+
+        Schema::table('customers', function (Blueprint $table) {
+            $table->unsignedInteger('total_pokok')->default(0);
         });
     }
 
@@ -39,5 +43,9 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('customers');
+        
+        Schema::table('customers', function (Blueprint $table) {
+            $table->dropColumn('total_pokok');
+        });
     }
 };

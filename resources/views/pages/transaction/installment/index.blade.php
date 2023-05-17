@@ -8,8 +8,8 @@
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-4">
-                                <a href="{{ route('transaction.installment.create') }}" class="btn btn-success">Baru</a>
-                                <button class="btn btn-outline-success" data-toggle="modal"
+                                <a href="{{ route('transaction.installment.create') }}" class="btn btn-primary">Baru</a>
+                                <button class="btn btn-outline-info" data-toggle="modal"
                                     data-target="#print">Cetak</button>
                             </div>
                             <div class="col-8 row">

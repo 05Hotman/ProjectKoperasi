@@ -69,11 +69,11 @@
                                             Maksimal: 2048KB
                                         </div>
                                     </div>
-                                    <img src="<?= asset($profile->photo ? 'storage/' . $profile->photo : 'swamitra.jpeg') ?>" class="img-thumbnail img-preview"
+                                    <img src="<?= asset($profile->photo ? 'storage/' . $profile->photo : 'profilkosong.png') ?>" class="img-thumbnail img-preview"
                                          style="width: 100%;" alt="Foto">
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-success">Simpan</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
                         </form>
                     </div>
                 </div>

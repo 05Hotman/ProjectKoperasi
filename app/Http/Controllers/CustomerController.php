@@ -45,9 +45,12 @@ class CustomerController extends Controller
                 })
                 ->editColumn('status', function($row) {
                     if ($row->status == 'blacklist') {
-                        return '<span class="badge d-block p-2 badge-danger">Blacklist</span>';
+                        return '<span class="badge d-block p-2 badge-dark">Blacklist</span>';
+                    }elseif($row->status == 'nonactive'){
+                        return '<span class="badge d-block p-2 badge-danger">NonActive</span>';
+                    }else{
+                        return '<span class="badge d-block p-2 badge-success">Active</span>';
                     }
-                    return '<span class="badge d-block p-2 badge-success">Active</span>';
                 })
                 ->rawColumns(['action', 'status'])
                 ->make(true);

@@ -79,7 +79,7 @@
         <!-- /.login-logo -->
         <div class="card">
             <div class="card-body login-card-body">
-                <img src="{{ asset('swamitra.jpeg') }}" width="20%" alt="{{ config('app.name') }}"
+                <img src="{{ asset('BN.png') }}" width="20%" alt="{{ config('app.name') }}"
                     class="brand-image mx-auto d-block mb-4" style="opacity: .8">
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
@@ -116,7 +116,7 @@
                         </div>
                         <!-- /.col -->
                         <div class="col-4">
-                            <button type="submit" class="btn btn-success btn-block">Masuk</button>
+                            <button type="submit" class="btn btn-primary btn-block">Masuk</button>
                         </div>
                         <!-- /.col -->
                     </div>

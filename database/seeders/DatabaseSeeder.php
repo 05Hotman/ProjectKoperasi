@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -53,5 +54,6 @@ class DatabaseSeeder extends Seeder
         foreach ($users as $user) {
             User::create($user);
         }
+
     }
 }

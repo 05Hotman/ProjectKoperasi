@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\UpdateUserRequest;
-use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Customer;
+use App\Models\User;
+use Illuminate\Queue\Events\Looping;
 
 class HomeController extends Controller
 {
@@ -17,10 +19,19 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Customer  $nasabah
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
+
+        $user = Customer::pluck('name');
         return view('pages.dashboard', [
-            'title' => 'Dashboard'
+            'title' => 'Dashboard',
+            'user' => $user
         ]);
     }
 

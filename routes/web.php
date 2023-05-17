@@ -9,6 +9,7 @@ use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VisitController;
 use App\Http\Controllers\WithdrawalController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*

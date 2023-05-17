@@ -11,6 +11,18 @@ class Customer extends Model
 
     protected $guarded = [];
 
+    public function updateTotalPokok()
+    {
+        $total = $this->deposits()->where('type', 'pokok')->sum('amount');
+        $this->total_pokok = $total;
+        $this->save();
+
+        if ($total > 100000) {
+            $this->status = 'active';
+            $this->save();
+        }
+    }
+
     public function deposits()
     {
         return $this->hasMany(Deposit::class);

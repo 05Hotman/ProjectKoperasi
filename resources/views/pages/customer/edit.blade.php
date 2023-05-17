@@ -90,7 +90,7 @@
                                             Maksimal: 2048KB
                                         </div>
                                     </div>
-                                    <img src="<?= asset($user->photo ? 'storage/' . $user->photo : 'swamitra.jpeg') ?>" class="img-thumbnail img-preview"
+                                    <img src="<?= asset($user->photo ? 'storage/' . $user->photo : 'profilkosong.png') ?>" class="img-thumbnail img-preview"
                                          style="width: 100%;" alt="Foto">
                                 </div>
                             </div>
