@@ -245,4 +245,13 @@ class DepositController extends Controller
 
         return $pdf->download($filename);
     }
+
+    public function getDepositByType(Request $request)
+{
+    $depositByType = Deposit::select('type', DB::raw('SUM(amount) as total_amount'))
+        ->groupBy('type')
+        ->get();
+
+    return response()->json($depositByType);
+}
 }

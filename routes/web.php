@@ -34,6 +34,9 @@ Route::middleware('auth')->group(function() {
 
     Route::resource('/karyawan', UserController::class, ['names' => 'user']);
     Route::resource('/nasabah', CustomerController::class, ['names' => 'customer']);
+    
+    Route::get('/deposit/by-type', [DepositController::class, 'getDepositByType'])
+    ->name('deposit.byType');
 
     Route::post('/karyawan/cetak', [UserController::class, 'print'])->name('user.print');
     Route::post('/nasabah/cetak', [CustomerController::class, 'print'])->name('customer.print');

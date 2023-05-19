@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
+use App\Models\Deposit;
+use App\Models\Loan;
 use App\Models\User;
 use Illuminate\Queue\Events\Looping;
 
@@ -27,11 +29,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-
-        $user = Customer::pluck('name');
+        $user = Customer::all();
+        $totalCustomers = Customer::whereMonth('created_at', date('m'))->count();
         return view('pages.dashboard', [
             'title' => 'Dashboard',
-            'user' => $user
+            'user' => $user,
+            'totalCustomers' => $totalCustomers,
         ]);
     }
 

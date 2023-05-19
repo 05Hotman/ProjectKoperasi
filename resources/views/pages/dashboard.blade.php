@@ -17,33 +17,14 @@
                                 </p>
 
                             </div>
-                            {{-- <div class="panel col-5">
+                            <div class="panel col-10">
                                 <figure class="highcharts-figure">
                                     <div id="container"></div>
                                     <p class="highcharts-description">
-                                      Chart showing use of multiple y-axes, where each series has a separate
-                                      axis. Multiple axes allows data in different ranges to be visualized
-                                      together. While this in some cases can cause charts to be hard to read,
-                                      it can also be a powerful tool to illustrate correlations.
+                                      Basic line chart showing trends in a dataset. This chart includes the
+                                      <code>series-label</code> module, which adds a label to each line for
+                                      enhanced readability.
                                     </p>
-                                  </figure>
-                            </div> --}}
-                            {{-- <div class="panel col-5">
-                                <figure class="highcharts-figure">
-                                    <div id="container"></div>
-                                    <p class="highcharts-description">
-                                      Grafik data simpanan
-                                    </p>
-                                  </figure>
-                            </div> --}}
-                            <div class="panel col-8">
-                                <figure class="highcharts-figure">
-                                    <div id="grafik1"></div>
-                                    @foreach ($user as $user)
-                                    <p class="highcharts-description">
-                                      tes
-                                    </p>
-                                    @endforeach
                                   </figure>
                             </div>
                         </div>
@@ -65,8 +46,71 @@
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <link rel="stylesheet" href="css/stylegrapic.css">
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="js/grapicpinjaman.js"></script>
     <script>
+        var totalCustomers = {{ $totalCustomers }};
+    </script>
+    <script src="{{ asset('js/grapicpinjaman.js') }}"></script>
+    <script>
+        // Mengambil data simpanan berdasarkan tipe melalui AJAX
+        $.ajax({
+            url: "{{ route('deposit.byType') }}",
+            method: "GET",
+            success: function(response) {
+                var depositByType = response;
+                // Memanggil fungsi di grapicpinjaman.js untuk menginisialisasi chart
+                initializeChart(depositByType);
+            }
+        });
+    </script>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- /.backup -->
+
+
+
+
+
+
+
+{{-- <div class="panel col-5">
+    <figure class="highcharts-figure">
+        <div id="container"></div>
+        <p class="highcharts-description">
+            Chart showing use of multiple y-axes, where each series has a separate
+            axis. Multiple axes allows data in different ranges to be visualized
+            together. While this in some cases can cause charts to be hard to read,
+            it can also be a powerful tool to illustrate correlations.
+        </p>
+        </figure>
+</div> --}}
+
+
+
+
+
+
+
+
+{{-- <div class="panel col-8">
+    <figure class="highcharts-figure">
+        <div id="grafik1"></div>
+    </figure>
+</div> --}}
+
+
+    {{-- <script>
 const chart = new Highcharts.Chart({
     chart: {
         renderTo: 'grafik1',
@@ -80,11 +124,7 @@ const chart = new Highcharts.Chart({
         }
     },
     xAxis: {
-        categories: [
-            @foreach ($user as $u)
-            '{{ $u }}',
-        @endforeach
-        ]
+        categories: {!! json_encode($user) !!}
     },
     yAxis: {
         title: {
@@ -93,7 +133,7 @@ const chart = new Highcharts.Chart({
     },
     tooltip: {
         headerFormat: '<b>{point.key}</b><br>',
-        pointFormat: 'Cars sold: {point.y}'
+        pointFormat: 'Simpanan: {point.y}'
     },
     title: {
         text: 'Sold passenger cars in Norway by brand, January 2021',
@@ -174,5 +214,5 @@ Highcharts.chart('container', {
     }]
 });
 
-    </script>
-@endsection
+    </script> --}}
+
