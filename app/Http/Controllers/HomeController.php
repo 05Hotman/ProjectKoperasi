@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Deposit;
 use App\Models\Loan;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Queue\Events\Looping;
 
 class HomeController extends Controller
@@ -30,11 +31,34 @@ class HomeController extends Controller
     public function index()
     {
         $user = Customer::all();
-        $totalCustomers = Customer::whereMonth('created_at', date('m'))->count();
+        $totalCustomers = DB::table('customers')
+        ->select(DB::raw('MONTH(joined_at) as month'), DB::raw('COUNT(*) as total'))
+        ->whereYear('joined_at', date('Y'))
+        ->groupBy(DB::raw('MONTH(joined_at)'))
+        ->pluck('total', 'month')
+        ->toArray();
+
+        $totalDepositPokok = Deposit::where('type', 'pokok')
+        ->whereMonth('created_at', Carbon::now()->month)
+        ->sum('amount');
+        $totalDepositWajib = Deposit::where('type', 'wajib')
+        ->whereMonth('created_at', Carbon::now()->month)
+        ->sum('amount');
+        $totalDepositSukarela = Deposit::where('type', 'sukarela')
+        ->whereMonth('created_at', Carbon::now()->month)
+        ->sum('amount');
+        $totalDepositPenarikan = Deposit::where('type', 'penarikan')
+        ->whereMonth('created_at', Carbon::now()->month)
+        ->sum('amount');
+
         return view('pages.dashboard', [
             'title' => 'Dashboard',
             'user' => $user,
             'totalCustomers' => $totalCustomers,
+            'totalDepositPokok' => $totalDepositPokok,
+            'totalDepositWajib' => $totalDepositWajib,
+            'totalDepositSukarela' => $totalDepositSukarela,
+            'totalDepositPenarikan' => $totalDepositPenarikan,
         ]);
     }
 

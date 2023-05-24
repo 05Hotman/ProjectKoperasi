@@ -18,9 +18,11 @@ Highcharts.chart('container', {
     },
 
     xAxis: {
-      accessibility: {
-        rangeDescription: 'Range: 2010 to 2020'
-      }
+        categories: months,
+        accessibility: {
+            rangeDescription: 'Range: January to December',
+            enabled: true
+        }
     },
 
     legend: {
@@ -34,25 +36,25 @@ Highcharts.chart('container', {
         label: {
           connectorAllowed: false
         },
-        pointStart: 2010
+        pointStart: 1
       }
     },
 
     series: [{
-      name: 'Costumers',
-      data: [totalCustomers]
+        name: 'Costumers',
+        data: [totalCustomers]
     }, {
       name: 'Simpanan',
-      data: [10]
+      data: [10, 21, 3]
     }, {
       name: 'Sales & Distribution',
-      data: [1]
+      data: [1, 43, 2]
     }, {
       name: 'Operations & Maintenance',
-      data: [11]
+      data: [11, 8, 5]
     }, {
       name: 'Other',
-      data: [2]
+      data: [2, 1, 2]
     }],
 
     responsive: {

@@ -39,29 +39,82 @@
 @endsection
 
 @section('footer')
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/series-label.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/export-data.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <link rel="stylesheet" href="css/stylegrapic.css">
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script>
-        var totalCustomers = {{ $totalCustomers }};
-    </script>
-    <script src="{{ asset('js/grapicpinjaman.js') }}"></script>
-    <script>
-        // Mengambil data simpanan berdasarkan tipe melalui AJAX
-        $.ajax({
-            url: "{{ route('deposit.byType') }}",
-            method: "GET",
-            success: function(response) {
-                var depositByType = response;
-                // Memanggil fungsi di grapicpinjaman.js untuk menginisialisasi chart
-                initializeChart(depositByType);
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<script>
+var totalCustomers = @json($totalCustomers);
+var totalDepositPokok = @json($totalDepositPokok);
+var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+Highcharts.chart('container', {
+    title: {
+        text: 'U.S Solar Employment Growth by Job Category, 2010-2020',
+        align: 'left'
+    },
+    subtitle: {
+        text: 'Source: <a href="https://irecusa.org/programs/solar-jobs-census/" target="_blank">IREC</a>',
+        align: 'left'
+    },
+    yAxis: {
+        title: {
+            text: 'Number of Employees'
+        }
+    },
+    xAxis: {
+        categories: months,
+        accessibility: {
+            rangeDescription: 'Range: January to December',
+            enabled: true
+        }
+    },
+    legend: {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'middle'
+    },
+    plotOptions: {
+        series: {
+            label: {
+                connectorAllowed: false
+            },
+            pointStart: 0 // Mulai dari indeks 0 (January)
+        }
+    },
+    series: [{
+        name: 'Customers',
+        data: Object.keys(totalCustomers).map(key => totalCustomers[key])
+    }, {
+        name: 'Simpanan',
+        data: Object.keys(totalDepositPokok).map(key => totalDepositPokok[key]).concat(@json($simpananManual))
+    }, {
+        name: 'Sales & Distribution',
+        data: [1, 43, 2, 5, 10, 7, 3, 6, 9, 4, 8, 12]
+    }, {
+        name: 'Operations & Maintenance',
+        data: [11, 8, 5, 3, 6, 9, 2, 7, 4, 12, 10, 15]
+    }, {
+        name: 'Other',
+        data: [2, 1, 2, 4, 6, 3, 5, 8, 9, 7, 10, 12]
+    }],
+    responsive: {
+        rules: [{
+            condition: {
+                maxWidth: 500
+            },
+            chartOptions: {
+                legend: {
+                    layout: 'horizontal',
+                    align: 'center',
+                    verticalAlign: 'bottom'
+                }
             }
-        });
-    </script>
+        }]
+    }
+});
+
+</script>
+
 @endsection
 
 
