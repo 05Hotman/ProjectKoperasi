@@ -29,38 +29,51 @@ class HomeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        $user = Customer::all();
-        $totalCustomers = DB::table('customers')
+{
+    $user = Customer::all();
+    $totalCustomers = DB::table('customers')
         ->select(DB::raw('MONTH(joined_at) as month'), DB::raw('COUNT(*) as total'))
         ->whereYear('joined_at', date('Y'))
         ->groupBy(DB::raw('MONTH(joined_at)'))
         ->pluck('total', 'month')
         ->toArray();
 
-        $totalDepositPokok = Deposit::where('type', 'pokok')
+    $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    $customerData = [];
+
+    foreach ($months as $month) {
+        if (isset($totalCustomers[$month])) {
+            $customerData[] = $totalCustomers[$month];
+        } else {
+            $customerData[] = null;
+        }
+    }
+
+    $totalDepositPokok = Deposit::where('type', 'pokok')
         ->whereMonth('created_at', Carbon::now()->month)
         ->sum('amount');
-        $totalDepositWajib = Deposit::where('type', 'wajib')
+    $totalDepositWajib = Deposit::where('type', 'wajib')
         ->whereMonth('created_at', Carbon::now()->month)
         ->sum('amount');
-        $totalDepositSukarela = Deposit::where('type', 'sukarela')
+    $totalDepositSukarela = Deposit::where('type', 'sukarela')
         ->whereMonth('created_at', Carbon::now()->month)
         ->sum('amount');
-        $totalDepositPenarikan = Deposit::where('type', 'penarikan')
+    $totalDepositPenarikan = Deposit::where('type', 'penarikan')
         ->whereMonth('created_at', Carbon::now()->month)
         ->sum('amount');
 
-        return view('pages.dashboard', [
-            'title' => 'Dashboard',
-            'user' => $user,
-            'totalCustomers' => $totalCustomers,
-            'totalDepositPokok' => $totalDepositPokok,
-            'totalDepositWajib' => $totalDepositWajib,
-            'totalDepositSukarela' => $totalDepositSukarela,
-            'totalDepositPenarikan' => $totalDepositPenarikan,
-        ]);
-    }
+    return view('pages.dashboard', [
+        'title' => 'Dashboard',
+        'user' => $user,
+        'totalCustomers' => $totalCustomers,
+        'totalDepositPokok' => $totalDepositPokok,
+        'totalDepositWajib' => $totalDepositWajib,
+        'totalDepositSukarela' => $totalDepositSukarela,
+        'totalDepositPenarikan' => $totalDepositPenarikan,
+        'customerData' => $customerData,
+    ]);
+}
+
 
     public function profile()
     {
