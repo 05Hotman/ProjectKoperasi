@@ -11,6 +11,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 
@@ -29,36 +30,44 @@ class LoanController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $data = Loan::with(['customer', 'collateral']);
+
         if ($request->ajax()) {
-            $data = Loan::with(['customer', 'collateral']);
+            if ($user->role == 'nasabah') {
+                $data->where('customer_id', $user->customer_id);
+            } else {
+                if ($request->from) {
+                    $data->whereDate('created_at', '>=', $request->from);
+                }
 
-            if ($request->from) {
-                $data = $data->whereDate('created_at', '>=', $request->from);
+                if ($request->to) {
+                    $data->whereDate('created_at', '<=', $request->to);
+                }
             }
-
-            if ($request->to) {
-                $data = $data->whereDate('created_at', '<=', $request->to);
-            }
-
             return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    if ($row->customer) {
-                        return '<a href="' . route('transaction.loan.show', $row) . '" class="btn btn-success btn-xs px-2"> Detail </a>
-                                <a href="' . route('transaction.loan.edit', $row) . '" class="btn btn-primary btn-xs px-2 mx-1"> Edit </a>
-                                <form class="d-inline" method="POST" action="' . route('transaction.loan.destroy', $row) . '">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <input type="hidden" name="_token" value="' . csrf_token() . '" />
-                                    <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
-                                </form>';
-                    }
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) use ($user) {
+                if ($row->customer && $user->role !== 'nasabah') {
+                    return '<a href="' . route('transaction.loan.show', $row) . '" class="btn btn-success btn-xs px-2"> Detail </a>
+                    <a href="' . route('transaction.loan.edit', $row) . '" class="btn btn-primary btn-xs px-2 mx-1"> Edit </a>
+                    <form class="d-inline" method="POST" action="' . route('transaction.loan.destroy', $row) . '">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="hidden" name="_token" value="' . csrf_token() . '" />
+                    <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
+                    </form>';
+                }
+                return '<div class="text-center">
+                <a href="' . route('transaction.loan.show', $row) . '" class="btn btn-success btn-sm px-4"> Detail </a>
+            </div>';
 
-                    return '<form class="d-inline" method="POST" action="' . route('transaction.loan.destroy', $row) . '">
+                return '<form class="d-inline" method="POST" action="' . route('transaction.loan.destroy', $row) . '">
                         <input type="hidden" name="_method" value="DELETE">
                         <input type="hidden" name="_token" value="' . csrf_token() . '" />
                         <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
                     </form>';
                 })
+            
                 ->editColumn('id', function($row) {
                     return $this->buildTransactionCode($row->id);
                 })
@@ -89,7 +98,7 @@ class LoanController extends Controller
                 ->make(true);
         }
         return view('pages.transaction.loan.index', [
-            'title' => $this->title
+            'title' => $this->title,
         ]);
     }
 
@@ -146,6 +155,7 @@ class LoanController extends Controller
             'loan' => $pinjaman,
         ]);
     }
+
 
     /**
      * Show the form for editing the specified resource.

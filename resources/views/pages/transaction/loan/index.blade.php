@@ -98,78 +98,81 @@
     <script src="https://cdn.datatables.net/responsive/2.2.7/js/responsive.bootstrap4.min.js"></script>
 
     <script>
-        $(function() {
-            let timeFrom = null;
-            let timeTo = null;
+    $(function() {
+        let userId = {{ Auth::id() }};
+        let timeFrom = null;
+        let timeTo = null;
 
-            //Initialize Datatables Elements
-            const dtTable = $('#datatable-bs').DataTable({
-                ajax: {
-                    url: "{!! url()->current() !!}",
-                    data: function (d) {
-                        d.from = timeFrom;
-                        d.to = timeTo;
-                    }
-                },
-                autoWidth: false,
-                responsive: true,
-                processing: true,
-                serverSide: true,
-                lengthChange: true,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json'
-                },
-                columns: [{
-                        data: 'id',
-                        name: 'id',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at'
-                    },
-                    {
-                        data: 'customer',
-                        name: 'customer',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'collateral',
-                        name: 'collateral',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'amount',
-                        name: 'amount'
-                    },
-                    {
-                        data: 'installment',
-                        name: 'installment'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
-                ]
-            });
-
-            $('.date-filter').on('change', function() {
-                const filterName = $(this).attr('name');
-                const filterValue = $(this).val();
-
-                if (filterName == 'time_from') {
-                    timeFrom = filterValue;
-                } else {
-                    timeTo = filterValue;
+        // Inisialisasi elemen Datatables
+        const dtTable = $('#datatable-bs').DataTable({
+            ajax: {
+                url: "{!! url()->current() !!}",
+                data: function (d) {
+                    d.from = timeFrom;
+                    d.to = timeTo;
+                    d.user_id = userId;
                 }
-
-                dtTable.draw();
-            });
+            },
+            autoWidth: false,
+            responsive: true,
+            processing: true,
+            serverSide: true,
+            lengthChange: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json'
+            },
+            columns: [{
+                    data: 'id',
+                    name: 'id',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'customer',
+                    name: 'customer',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'collateral',
+                    name: 'collateral',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'amount',
+                    name: 'amount'
+                },
+                {
+                    data: 'installment',
+                    name: 'installment'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ]
         });
-    </script>
+
+        $('.date-filter').on('change', function() {
+            const filterName = $(this).attr('name');
+            const filterValue = $(this).val();
+
+            if (filterName == 'time_from') {
+                timeFrom = filterValue;
+            } else {
+                timeTo = filterValue;
+            }
+
+            dtTable.draw();
+        });
+    });
+</script>
+
 @endpush

@@ -13,6 +13,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Str;
+
 
 class CustomerController extends Controller
 {
@@ -83,9 +85,58 @@ class CustomerController extends Controller
         try {
             DB::beginTransaction();
 
+            // Mengambil nilai nomor rekening, NIK, dan tanggal daftar
+            $nomorRekening = $request->number;
+            $tigaAngkaAwal = substr($nomorRekening, 0, 3);
+
+            $nik = $request->nik;
+            $duaAngkaAkhirNIK = substr($nik, -2);
+
+            $tanggalDaftar = $request->joined_at;
+            $tanggal = date('d', strtotime($tanggalDaftar));
+
+            // Menggabungkan ketiga angka menjadi password
+            $password = $tigaAngkaAwal . $duaAngkaAkhirNIK . $tanggal;
+
             $data = $request->except('amount');
             $data['photo'] = $this->storeImage($request);
+
+            // Generate username dari nama dengan 6 huruf acak
+            $username = strtolower(substr(str_shuffle($request->name), 0, 6));
+
+            // Generate dua angka acak
+            $randomNumber = str_pad(rand(0, 99), 2, '0', STR_PAD_LEFT);
+
+            // Gabungkan username dengan dua angka acak
+            $username .= $randomNumber;
+
+            // Cek apakah username sudah ada, jika ya, tambahkan angka acak tambahan
+            $counter = 1;
+            $uniqueUsername = $username;
+            while (User::where('username', $uniqueUsername)->exists()) {
+                $uniqueUsername = $username . $counter;
+                $counter++;
+            }
+
+            // Simpan data pelanggan
             $customer = Customer::create($data);
+
+            if ($request->get('amount') >= 100000) {
+                $customer->status = 'active';
+            } else {
+                $customer->status = 'nonactive';
+            }
+
+            $customer->save();
+
+            // Simpan pengguna (username dan password)
+            $user = new User();
+            $user->name = $request->name;
+            $user->username = $uniqueUsername;
+            $user->password = bcrypt($password);
+            $user->role = "nasabah";
+            $customer->user()->save($user); // Menghubungkan pengguna dengan pelanggan
+
             Deposit::create([
                 'created_at' => $request->joined_at,
                 'amount' => $request->get('amount'),
@@ -101,6 +152,7 @@ class CustomerController extends Controller
             return back()->with('error', $th->getMessage());
         }
     }
+
 
     /**
      * Display the specified resource.
@@ -148,6 +200,11 @@ class CustomerController extends Controller
         try {
             $data = $request->except('photo');
             $data['photo'] = $this->updateImage($request, $nasabah->photo);
+            if ($request->get('amount') > 100000) {
+                $data['status'] = 'active';
+            } else {
+                $data['status'] = 'nonactive';
+            }
             $nasabah->update($data);
             return back()->with('success', 'Berhasil mengedit nasabah!');
         } catch (\Throwable $th) {

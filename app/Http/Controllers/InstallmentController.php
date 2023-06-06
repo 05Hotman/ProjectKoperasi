@@ -11,6 +11,7 @@ use App\Traits\LoanTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 
@@ -31,33 +32,42 @@ class InstallmentController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $data = Deposit::with(['customer', 'Loan'])->where('type', 'wajib')->orderBy('created_at');
         if ($request->ajax()) {
-            $data = Deposit::with(['customer', 'loan'])->where('type', 'wajib')->orderBy('created_at');
+            if ($user->role == 'nasabah') {
+                $data->whereHas('customer', function ($query) use ($user) {
+                    $query->where('customer_id', $user->customer_id);
+                });
+            } else {
+                if ($request->customer) {
+                    $data = $data->where('customer_id', $request->customer);
+                }
 
-            if ($request->customer) {
-                $data = $data->where('customer_id', $request->customer);
-            }
+                if ($request->from) {
+                    $data = $data->whereDate('created_at', '>=', $request->from);
+                }
 
-            if ($request->from) {
-                $data = $data->whereDate('created_at', '>=', $request->from);
-            }
-
-            if ($request->to) {
-                $data = $data->whereDate('created_at', '<=', $request->to);
+                if ($request->to) {
+                    $data = $data->whereDate('created_at', '<=', $request->to);
+                }
             }
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    if ($row->customer) {
+                ->addColumn('action', function ($row) use ($user) {
+                    if ($row->customer && $user->role !== 'nasabah') {
                         return '<a href="' . route('transaction.installment.show', $row) . '" class="btn btn-success btn-xs px-2"> Detail </a>
-                                <a href="' . route('transaction.installment.edit', $row) . '" class="btn btn-primary btn-xs px-2 mx-1"> Edit </a>
-                                <form class="d-inline" method="POST" action="' . route('transaction.installment.destroy', $row) . '">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <input type="hidden" name="_token" value="' . csrf_token() . '" />
-                                    <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
-                                </form>';
+                    <a href="' . route('transaction.installment.edit', $row) . '" class="btn btn-primary btn-xs px-2 mx-1"> Edit </a>
+                    <form class="d-inline" method="POST" action="' . route('transaction.installment.destroy', $row) . '">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="hidden" name="_token" value="' . csrf_token() . '" />
+                    <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
+                    </form>';
                     }
+                    return '<div class="text-center">
+                <a href="' . route('transaction.installment.show', $row) . '" class="btn btn-success btn-sm px-4"> Detail </a>
+            </div>';
 
                     return '<form class="d-inline" method="POST" action="' . route('transaction.installment.destroy', $row) . '">
                         <input type="hidden" name="_method" value="DELETE">

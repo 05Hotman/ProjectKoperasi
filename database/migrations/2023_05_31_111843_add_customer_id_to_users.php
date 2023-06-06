@@ -14,14 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('gender', ['L', 'P'])->default('L');
-            $table->date('birth')->nullable();
-            $table->string('last_education')->nullable();
-            $table->string('address')->nullable();
-            $table->string('phone')->nullable()->unique();
-            $table->dateTime('joined_at')->nullable();
-            $table->enum('role', ['manager', 'teller', 'collector', 'nasabah'])->default('nasabah');
-            $table->string('photo')->nullable();
+            $table->unsignedBigInteger('customer_id')->nullable();
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
         });
     }
 
@@ -33,7 +27,8 @@ return new class extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->dropForeign(['customer_id']);
+            $table->dropColumn('customer_id');
         });
     }
 };

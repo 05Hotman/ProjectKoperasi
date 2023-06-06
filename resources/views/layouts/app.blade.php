@@ -76,6 +76,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         </nav>
         <!-- /.navbar -->
 
+
         <!-- Main Sidebar Container -->
         <aside class="main-sidebar sidebar-light-primary elevation-2">
             <!-- Brand Logo -->
@@ -102,6 +103,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                 </p>
                             </a>
                         </li>
+                        @if (Auth::check() && Auth::user()->role === 'manager')
                         <li class="nav-header">DATA MASTER</li>
                         <li class="nav-item">
                             <a href="{{ route('user.index') }}" class="nav-link {{ Route::is('user.*') ? 'active' : '' }}">
@@ -119,6 +121,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                 </p>
                             </a>
                         </li>
+                        @endif
                         <li class="nav-header">DATA TRANSAKSI</li>
                         <li class="nav-item {{ Route::is('transaction.*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ Route::is('transaction.*') ? 'active' : '' }}">
@@ -129,18 +132,37 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
+                                @php
+                                use App\Models\Loan;
+                                use App\Models\Deposit;
+                                    $user = auth()->user();
+                                    $loan = Loan::with(['customer', 'collateral'])
+                                        ->where('customer_id', $user->customer_id)
+                                        ->first(); // Mengambil instance model pinjaman
+                                    $withdrawal = Deposit::with('customer')
+                                        ->where('customer_id', $user->customer_id)
+                                        ->first();
+                                @endphp
+
                                 <li class="nav-item">
-                                    <a href="{{ route('transaction.loan.index') }}" class="nav-link {{ Route::is('transaction.loan.*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Pinjaman</p>
-                                    </a>
+                                    @if($user->role === 'nasabah' && !$loan)
+                                        <!-- Tidak ada data pinjaman untuk pengguna -->
+                                    @else
+                                        <a href="{{ $user->role === 'nasabah' ? route('transaction.loan.show', $loan) : route('transaction.loan.index') }}" class="nav-link {{ Route::is('transaction.loan.*') ? 'active' : '' }}">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Pinjaman</p>
+                                        </a>
+                                    @endif
                                 </li>
+                                </li>
+                                @if (Auth::check() && Auth::user()->role === 'manager')
                                 <li class="nav-item">
                                     <a href="{{ route('transaction.installment.index') }}" class="nav-link {{ Route::is('transaction.installment.*') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Pembayaran Pinjaman</p>
                                     </a>
                                 </li>
+                                @endif
                                 <li class="nav-item">
                                     <a href="{{ route('transaction.deposit.index') }}" class="nav-link {{ Route::is('transaction.deposit.*') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
@@ -148,13 +170,18 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('transaction.withdrawal.index') }}" class="nav-link {{ Route::is('transaction.withdrawal.*') ? 'active' : '' }}">
+                                    @if($user->role === 'nasabah' && !$withdrawal)
+                                        <!-- Tidak ada data pinjaman untuk pengguna -->
+                                    @else
+                                    <a href="{{ $user->role === 'nasabah' ? route('transaction.withdrawal.show', $loan) : route('transaction.withdrawal.index') }}" class="nav-link {{ Route::is('transaction.withdrawal.*') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Penarikan</p>
                                     </a>
+                                    @endif
                                 </li>
                             </ul>
                         </li>
+                        @if (Auth::check() && Auth::user()->role === 'manager')
                         <li class="nav-item {{ Route::is('collection.*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ Route::is('collection.*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-book"></i>
@@ -178,6 +205,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                 </li>
                             </ul>
                         </li>
+                        @endif
                     </ul>
                 </nav>
                 <!-- /.sidebar-menu -->

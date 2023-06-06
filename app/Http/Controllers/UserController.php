@@ -25,32 +25,33 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
         if ($request->ajax()) {
-            return DataTables::of(User::query())
-                ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    if ($row->id == auth()->user()->id) {
-                        return '<a class="badge badge-secondary mx-auto p-2" href="' . route('profile.show') . '">Pengaturan</a>';
-                    }
-
-                    if ($row->role == 'manager') {
-                        return '<span class="badge badge-warning mx-auto p-2">Aksi Dilarang</span>';
-                    }
-
-                    return '<a href="' . route('user.show', $row) . '" class="btn btn-success btn-xs px-2"> Detail </a>
-                            <a href="' . route('user.edit', $row) . '" class="btn btn-primary btn-xs px-2 mx-1"> Edit </a>
-                            <form class="d-inline" method="POST" action="' . route('user.destroy', $row) . '">
-                                <input type="hidden" name="_method" value="DELETE">
-                                <input type="hidden" name="_token" value="' . csrf_token() . '" />
-                                <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
-                            </form>';
-                })
-                ->editColumn('role', function($row) {
-                    return strtoupper($row->role);
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
+                return DataTables::of(User::query())
+                    ->addIndexColumn()
+                    ->addColumn('action', function ($row) {
+                        if ($row->id == auth()->user()->id) {
+                            return '<a class="badge badge-secondary mx-auto p-2" href="' . route('profile.show') . '">Pengaturan</a>';
+                        }
+    
+                        if ($row->role == 'manager') {
+                            return '<span class="badge badge-warning mx-auto p-2">Aksi Dilarang</span>';
+                        }
+    
+                        return '<a href="' . route('user.show', $row) . '" class="btn btn-success btn-xs px-2"> Detail </a>
+                                <a href="' . route('user.edit', $row) . '" class="btn btn-primary btn-xs px-2 mx-1"> Edit </a>
+                                <form class="d-inline" method="POST" action="' . route('user.destroy', $row) . '">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <input type="hidden" name="_token" value="' . csrf_token() . '" />
+                                    <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
+                                </form>';
+                    })
+                    ->editColumn('role', function($row) {
+                        return strtoupper($row->role);
+                    })
+                    ->rawColumns(['action'])
+                    ->make(true);
+            }
 
         return view('pages.user.index', [
             'title' => $this->title
