@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('phone')->nullable()->unique();
             $table->string('last_education')->nullable();
             $table->string('profession')->nullable();
-            $table->enum('status', ['active','nonactive', 'blacklist'])->default('nonactive');
+            $table->enum('status', ['active','nonactive', 'blacklist'])->default('active');
             $table->string('photo')->nullable();
             $table->dateTime('joined_at')->nullable();
             $table->timestamps();

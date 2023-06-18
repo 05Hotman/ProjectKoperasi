@@ -22,14 +22,48 @@ class Deposit extends Model
         return $this->belongsTo(Loan::class);
     }
 
-        public function getTotalAmountPerMonthByType($type)
+    // Fungsi untuk mengambil total deposit keseluruhan
+    public static function getTotalDepositSukarela()
     {
-        $result = DB::table('deposits')
-            ->select(DB::raw('SUM(amount) as total_amount'))
-            ->where('type', $type)
-            ->groupBy(DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
-            ->get();
+        return self::select('current_balance')
+        ->whereIn('id', function ($query) {
+            $query->select(DB::raw('MAX(id)'))
+                ->from('deposits')
+                ->groupBy('customer_id');
+        })
+        ->where('type', 'sukarela')
+            ->sum('current_balance');
+    }
+    public static function getTotalDepositWajib()
+    {
+        return self::select('current_balance')
+        ->whereIn('id', function ($query) {
+            $query->select(DB::raw('MAX(id)'))
+            ->from('deposits')
+            ->groupBy('customer_id');
+        })
+            ->where('type', 'wajib')
+            ->sum('current_balance');
+    }
 
-        return $result;
+
+    // Fungsi untuk mengubah format angka menjadi "k", "m", atau "B"
+    public static function formatNumber($number)
+    {
+        $suffix = '';
+        if ($number >= 1000 && $number < 1000000) {
+            $number = $number / 1000;
+            $suffix = 'k';
+        } elseif ($number >= 1000000 && $number < 1000000000) {
+            $number = $number / 1000000;
+            $suffix = 'm';
+        } elseif ($number >= 1000000000) {
+            $number = $number / 1000000000;
+            $suffix = 'B';
+        } elseif ($number >= 1000000000000) {
+            $number = $number / 1000000000000;
+            $suffix = 'T';
+        }
+        return number_format($number, 0, '.', '') . $suffix;
     }
 }

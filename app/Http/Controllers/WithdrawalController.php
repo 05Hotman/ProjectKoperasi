@@ -124,20 +124,48 @@ class WithdrawalController extends Controller
      */
     public function store(StoreDepositRequest $request)
     {
-        try {
-            DB::beginTransaction();
-            $simpanan = Deposit::where('customer_id', $request->customer_id)->whereIn('type', ['sukarela', 'penarikan'])->latest()->first();
-            $data = $request->all();
-            $data['previous_balance'] = $simpanan->current_balance ?? 0;
-            $data['current_balance'] = $data['previous_balance'] - $request->amount;
-            Deposit::create($data);
-            DB::commit();
-            return redirect()->route('transaction.withdrawal.index')->with('success', 'Berhasil menarik simpanan nasabah!');
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return back()->with('error', $th->getMessage());
+        $saldoAkhir = Deposit::where('customer_id', $request->customer_id)
+            ->whereIn('type', ['sukarela', 'penarikan'])
+            ->latest()
+            ->first();
+
+        // Mengurangi saldo sukarela
+        $sukarelaDeposit = Deposit::where('customer_id', $request->customer_id)
+            ->where('type', 'sukarela')
+            ->latest()
+            ->first();
+
+        if ($sukarelaDeposit) {
+            $sukarelaDeposit->current_balance -= $request->amount;
+            $sukarelaDeposit->save();
         }
+
+        // Membuat transaksi penarikan baru
+        Deposit::create([
+            'type' => 'penarikan',
+            'amount' => $request->amount,
+            'previous_balance' => $saldoAkhir->current_balance,
+            'current_balance' => $saldoAkhir->current_balance - $request->amount,
+            'customer_id' => $saldoAkhir->customer_id
+        ]);
+
+        return redirect()->route('transaction.withdrawal.index')->with('success', 'Berhasil menarik simpanan nasabah!');
     }
+
+
+        // try {
+        //     DB::beginTransaction();
+        //     $simpanan = Deposit::where('customer_id', $request->customer_id)->whereIn('type', ['sukarela', 'penarikan'])->latest()->first();
+        //     $data = $request->all();
+        //     $data['previous_balance'] = $simpanan->current_balance ?? 0;
+        //     $data['current_balance'] = $data['previous_balance'] - $request->amount;
+        //     Deposit::create($data);
+        //     DB::commit();
+        //     return redirect()->route('transaction.withdrawal.index')->with('success', 'Berhasil menarik simpanan nasabah!');
+        // } catch (\Throwable $th) {
+        //     DB::rollBack();
+        //     return back()->with('error', $th->getMessage());
+        // }
 
     /**
      * Display the specified resource.
@@ -176,15 +204,54 @@ class WithdrawalController extends Controller
      * @param  \App\Models\Deposit  $penarikan
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateDepositRequest $request, Deposit $penarikan)
+    // public function update(UpdateDepositRequest $request, Deposit $penarikan)
+    // {
+    //     try {
+    //         $penarikan->update($request->all());
+    //         return back()->with('success', 'Berhasil mengedit penarikan simpanan nasabah!');
+    //     } catch (\Throwable $th) {
+    //         return back()->with('error', $th->getMessage());
+    //     }
+    // }
+
+    public function update(Request $request, $id)
     {
         try {
-            $penarikan->update($request->all());
-            return back()->with('success', 'Berhasil mengedit penarikan simpanan nasabah!');
+            $penarikan = Deposit::findOrFail($id);
+            $customerId = $penarikan->customer_id;
+            $previousAmount = $penarikan->amount; // Amount sebelum diubah
+            $newAmount = $request->input('amount'); // Amount baru yang di-request
+
+            // Mengupdate nilai amount pada deposit penarikan
+            $penarikan->amount = $newAmount;
+            $penarikan->save();
+
+            // Mengurangi saldo saat ini dengan selisih amount baru dengan amount sebelum diubah
+            $sukarelaDeposit = Deposit::where('customer_id', $customerId)
+                ->where('type', 'sukarela')
+                ->latest()
+                ->first();
+
+            if ($sukarelaDeposit) {
+                // Mengupdate current_balance pada deposit penarikan
+                $penarikan->current_balance -= ($newAmount - $previousAmount);
+                $penarikan->save();
+
+                // Mengupdate current_balance pada deposit sukarela
+                $sukarelaDeposit->current_balance -= ($newAmount - $previousAmount);
+                $sukarelaDeposit->save();
+            }
+
+            return back()->with('success', 'Berhasil mengubah data penarikan!');
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());
         }
     }
+
+
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -195,12 +262,31 @@ class WithdrawalController extends Controller
     public function destroy(Deposit $penarikan)
     {
         try {
+            $customerId = $penarikan->customer_id;
+            $amount = $penarikan->amount;
+
+            $sukarelaDeposit = Deposit::where('customer_id', $customerId)
+                ->where('type', 'sukarela')
+                ->latest()
+                ->first();
+
+            if ($sukarelaDeposit) {
+                $sukarelaDeposit->current_balance += $amount;
+                $sukarelaDeposit->save();
+            }
+
             $penarikan->delete();
+
             return back()->with('success', 'Berhasil menghapus penarikan simpanan nasabah!');
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());
         }
     }
+
+
+
+
+
 
     public function print(Request $request)
     {

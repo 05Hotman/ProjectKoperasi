@@ -198,18 +198,24 @@ class CustomerController extends Controller
     public function update(UpdateCustomerRequest $request, Customer $nasabah)
     {
         try {
-            $data = $request->except('photo');
+            $data = $request->all();
             $data['photo'] = $this->updateImage($request, $nasabah->photo);
-            if ($request->get('amount') > 100000) {
-                $data['status'] = 'active';
-            } else {
-                $data['status'] = 'nonactive';
+
+            // Periksa apakah pelanggan merupakan data baru
+            if (!$nasabah->exists()) {
+                if ($request->get('amount') > 100000) {
+                    $data['status'] = 'active';
+                } else {
+                    $data['status'] = 'nonactive';
+                }
             }
+
             $nasabah->update($data);
             return back()->with('success', 'Berhasil mengedit nasabah!');
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());
         }
+
     }
 
     /**
@@ -302,3 +308,32 @@ class CustomerController extends Controller
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+// try {
+// //     $data = $nasabah->toArray();
+//     $data['photo'] = $this->updateImage($request, $nasabah->photo);
+
+//     // Periksa apakah pelanggan merupakan data baru
+//     if (!$nasabah->exists()) {
+//         if ($request->get('amount') > 100000) {
+//             $data['status'] = 'active';
+//         } else {
+//             $data['status'] = 'nonactive';
+//         }
+//     }
+
+//     $nasabah->update($data);
+//     return back()->with('success', 'Berhasil mengedit nasabah!');
+// } catch (\Throwable $th) {
+//     return back()->with('error', $th->getMessage());
+// }

@@ -11,25 +11,25 @@ class Customer extends Model
 
     protected $guarded = [];
 
-    public function updateTotalPokok()
-    {
-        $total = $this->deposits()->where('type', 'pokok')->sum('amount');
-        $this->total_pokok = $total;
-        $this->save();
+    // public function updateTotalPokok()
+    // {
+    //     $total = $this->deposits()->where('type', 'pokok')->sum('amount');
+    //     $this->total_pokok = $total;
+    //     $this->save();
 
-        $currentStatus = $this->status; // Menyimpan status saat ini sebelum melakukan perubahan
+    //     $currentStatus = $this->status; // Menyimpan status saat ini sebelum melakukan perubahan
 
-        if ($total > 100000 && $currentStatus !== 'active') {
-            $this->status = 'active'; // Mengubah status menjadi "active" jika total deposit pokok melebihi 100000 dan status bukan "active"
-        } elseif ($total <= 100000 && $currentStatus !== 'nonactive') {
-            $this->status = 'nonactive'; // Mengubah status menjadi "nonactive" jika total deposit pokok tidak melebihi 100000 dan status bukan "nonactive"
-        }
+    //     if ($total > 100000 && $currentStatus !== 'active') {
+    //         $this->status = 'active'; // Mengubah status menjadi "active" jika total deposit pokok melebihi 100000 dan status bukan "active"
+    //     } elseif ($total <= 100000 && $currentStatus !== 'nonactive') {
+    //         $this->status = 'nonactive'; // Mengubah status menjadi "nonactive" jika total deposit pokok tidak melebihi 100000 dan status bukan "nonactive"
+    //     }
 
-        // Hanya menyimpan perubahan status jika ada perubahan yang dilakukan
-        if ($this->status !== $currentStatus) {
-            $this->save();
-        }
-    }
+    //     // Hanya menyimpan perubahan status jika ada perubahan yang dilakukan
+    //     if ($this->status !== $currentStatus) {
+    //         $this->save();
+    //     }
+    // }
 
 
 

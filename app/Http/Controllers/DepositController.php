@@ -26,6 +26,40 @@ class DepositController extends Controller
         $this->code = 'SI';
     }
 
+
+    public function reduceVoluntaryDeposit()
+    {
+        $customersWithDebt = Customer::whereHas('loans', function ($query) {
+            $query->where('status', 'active');
+        })->get();
+
+        foreach ($customersWithDebt as $customer) {
+            $latestDeposit = Deposit::where('customer_id', $customer->id)
+                ->where('type', 'sukarela')
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if ($latestDeposit && Carbon::now()->subMonth()->greaterThan($latestDeposit->created_at)) {
+                $latestDeposit->voluntary_balance -= 20000;
+                $latestDeposit->save();
+            }
+        }
+    }
+
+    public function processMonthlyVoluntaryDepositReduction()
+    {
+        // Panggil fungsi ini setiap bulan pada tanggal tertentu untuk mengurangi saldo simpanan sukarela
+        if (Carbon::now()->format('d') == '01') {
+            // Panggil fungsi pengurangan saldo simpanan sukarela di sini
+            $this->reduceVoluntaryDeposit();
+        }
+
+        return response()->json(['message' => 'Saldo simpanan sukarela berhasil dikurangi.'], 200);
+    }
+
+
+    
+
     /**
      * Display a listing of the resource.
      *
@@ -80,26 +114,26 @@ class DepositController extends Controller
                         <button type="submit" class="btn btn-danger btn-xs px-2 delete-data"> Hapus </button>
                     </form>';
                 })
-                ->editColumn('id', function($row) {
+                ->editColumn('id', function ($row) {
                     return $this->buildTransactionCode($row->id);
                 })
-                ->editColumn('created_at', function($row) {
+                ->editColumn('created_at', function ($row) {
                     return Carbon::parse($row->created_at)->isoFormat('DD-MM-Y');
                 })
-                ->editColumn('type', function($row) {
+                ->editColumn('type', function ($row) {
                     return ucfirst($row->type);
                 })
-                ->editColumn('customer', function($row) {
+                ->editColumn('customer', function ($row) {
                     if ($row->customer) {
                         return $row->customer->name . '<small class="small d-block">No. Rek: ' . $row->customer->number . '</small>';
                     }
 
                     return 'Nasabah Tidak Ditemukan';
                 })
-                ->editColumn('amount', function($row) {
+                ->editColumn('amount', function ($row) {
                     return 'Rp' . number_format($row->amount, 2, ',', '.');
                 })
-                ->editColumn('current_balance', function($row) {
+                ->editColumn('current_balance', function ($row) {
                     return 'Rp' . number_format($row->current_balance, 2, ',', '.');
                 })
                 ->rawColumns(['action', 'customer'])
@@ -257,11 +291,11 @@ class DepositController extends Controller
     }
 
     public function getDepositByType(Request $request)
-{
-    $depositByType = Deposit::select('type', DB::raw('SUM(amount) as total_amount'))
-        ->groupBy('type')
-        ->get();
+    {
+        $depositByType = Deposit::select('type', DB::raw('SUM(amount) as total_amount'))
+            ->groupBy('type')
+            ->get();
 
-    return response()->json($depositByType);
-}
+        return response()->json($depositByType);
+    }
 }

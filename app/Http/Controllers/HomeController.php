@@ -29,63 +29,88 @@ class HomeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-{
-    $totalCustomers = DB::table('customers')
-        ->select(DB::raw('MONTH(joined_at) as month'), DB::raw('COUNT(*) as total'))
-        ->whereYear('joined_at', date('Y'))
-        ->groupBy(DB::raw('MONTH(joined_at)'))
-        ->pluck('total', 'month')
-        ->toArray();
+    {
+        // Mengambil total pelanggan berdasarkan bulan
+        // $totalCustomers = DB::table('customers')
+        // ->select(DB::raw('MONTH(joined_at) as month'), DB::raw('COUNT(*) as total'))
+        // ->whereYear('joined_at', date('Y'))
+        //     ->groupBy(DB::raw('MONTH(joined_at)'))
+        //     ->pluck('total', 'month')
+        //     ->toArray();
+        $totalCustomers = Customer::count();
+        $totalDepositC = Deposit::getTotalDepositSukarela();
+        $formattedTotalDeposit = Deposit::formatNumber($totalDepositC);
+        $Loan = Loan::getLoanBalance();
+        $formatLoan = Loan::formatNumber($Loan);
+        $diff = DB::table('loans')
+        ->selectRaw('SUM(amount - paid) as diff')
+        ->value('diff');
 
-    $totalLoans = DB::table('loans')
+        // Mengambil total pinjaman berdasarkan bulan
+        $totalLoans = DB::table('loans')
         ->select(DB::raw('MONTH(created_at) as month'), DB::raw('SUM(amount) as total'))
         ->whereYear('created_at', date('Y'))
             ->groupBy(DB::raw('MONTH(created_at)'))
             ->pluck('total', 'month')
             ->toArray();
 
-    $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    $customerData = [];
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $customerData = [];
         $loansData = [];
 
-    foreach ($months as $month) {
-        if (isset($totalCustomers[$month])) {
-            $customerData[] = $totalCustomers[$month];
-            $loansData[] = $totalLoans[$month];
-        } else {
-            $customerData[] = null;
-            $loansData[] = null;
+        foreach ($months as $month) {
+            if (isset($totalCustomers[$month])) {
+                $customerData[] = $totalCustomers[$month];
+            } else {
+                $customerData[] = null;
+            }
+
+            if (isset($totalLoans[$month])) {
+                $loansData[] = $totalLoans[$month];
+            } else {
+                $loansData[] = null;
+            }
         }
-    }
 
- 
+        // Mengambil data pinjaman terakhir akun yang login
+        $user = auth()->user();
+        $latestLoan = Loan::where('customer_id', $user->customer_id)
+        ->latest('created_at')
+        ->first();
 
-    $totalDepositPokok = Deposit::where('type', 'pokok')
-        ->whereMonth('created_at', Carbon::now()->month)
-        ->sum('amount');
-    $totalDepositWajib = Deposit::where('type', 'wajib')
-        ->whereMonth('created_at', Carbon::now()->month)
-        ->sum('amount');
-    $totalDepositSukarela = Deposit::where('type', 'sukarela')
-        ->whereMonth('created_at', Carbon::now()->month)
-        ->sum('amount');
-    $totalDepositPenarikan = Deposit::where('type', 'penarikan')
-        ->whereMonth('created_at', Carbon::now()->month)
-        ->sum('amount');
-
+        $currentYear = date('Y');
+        $totalDepositPokok = Deposit::where('type', 'pokok')
+        ->whereYear('created_at', $currentYear)
+            ->sum('amount');
+        $totalDepositWajib = Deposit::where('type', 'wajib')
+        ->whereYear('created_at', $currentYear)
+            ->sum('amount');
+        $totalDepositSukarela = Deposit::where('type', 'wajib')
+        ->whereYear('created_at', $currentYear)
+            ->sum('amount');
+        $totalDepositPenarikan = Deposit::where('type', 'penarikan')
+        ->whereMonth('created_at', $currentYear)
+            ->sum('amount');
 
         return view('pages.dashboard', [
-                'title' => 'Dashboard',
-                'totalCustomers' => $totalCustomers,
+            'title' => 'Dashboard',
+            'totalCustomers' => $totalCustomers,
             'totalPinjaman' => $totalLoans,
-                'totalDepositPokok' => $totalDepositPokok,
-                'totalDepositWajib' => $totalDepositWajib,
-                'totalDepositSukarela' => $totalDepositSukarela,
-                'totalDepositPenarikan' => $totalDepositPenarikan,
-                'customerData' => $customerData,
-                'loansData' => $loansData,
-            ]);
-}
+            'totalDepositPokok' => $totalDepositPokok,
+            'totalDepositWajib' => $totalDepositWajib,
+            'totalDepositSukarela' => $totalDepositSukarela,
+            'totalDepositPenarikan' => $totalDepositPenarikan,
+            'customerData' => $customerData,
+            'loansData' => $loansData,
+            'loanMonths' => $months,
+            'latestLoan' => $latestLoan, // Menambahkan data pinjaman terakhir akun yang login
+            
+            'totalDepositC' => $formattedTotalDeposit,  
+            'totalLoan' => $formatLoan,
+        ]);
+    }
+
+
 
 
     public function profile()

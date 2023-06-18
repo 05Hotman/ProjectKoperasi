@@ -139,9 +139,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                     $loan = Loan::with(['customer', 'collateral'])
                                         ->where('customer_id', $user->customer_id)
                                         ->first(); // Mengambil instance model pinjaman
+                                    $totalDeposit = Deposit::where('customer_id', $user->customer_id)
+                                        ->whereIn('type', ['sukarela', 'wajib', 'penarikan'])
+                                        ->sum('amount');
                                     $withdrawal = Deposit::with('customer')
                                         ->where('customer_id', $user->customer_id)
+                                        ->where('type', 'penarikan')
                                         ->first();
+
                                 @endphp
 
                                 <li class="nav-item">
@@ -173,7 +178,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                     @if($user->role === 'nasabah' && !$withdrawal)
                                         <!-- Tidak ada data pinjaman untuk pengguna -->
                                     @else
-                                    <a href="{{ $user->role === 'nasabah' ? route('transaction.withdrawal.show', $loan) : route('transaction.withdrawal.index') }}" class="nav-link {{ Route::is('transaction.withdrawal.*') ? 'active' : '' }}">
+                                    <a href="{{ $user->role === 'nasabah' ? route('transaction.withdrawal.show', $withdrawal) : route('transaction.withdrawal.index') }}" class="nav-link {{ Route::is('transaction.withdrawal.*') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Penarikan</p>
                                     </a>
@@ -329,6 +334,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
             })
         }
     </script>
+
+    
 </body>
 
 </html>

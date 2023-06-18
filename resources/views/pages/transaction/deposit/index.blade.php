@@ -8,19 +8,29 @@
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-4">
-                                <a href="{{ route('transaction.deposit.create') }}" class="btn btn-primary">Baru</a>
+                                @if(auth()->user()->role === 'nasabah')
+                                    <!-- Pengguna adalah nasabah -->
+                                @else
+                                    <a href="{{ route('transaction.deposit.create') }}" class="btn btn-primary">Baru</a>
+                                @endif
                                 <button class="btn btn-outline-info" data-toggle="modal"
                                     data-target="#print">Cetak</button>
                             </div>
                             <div class="col-8 row">
-                                <div class="col-12 col-md-3">
-                                    <select class="form-control" name="customer">
-                                        <option value="">Semua Nasabah</option>
-                                        @foreach ($customers as $customer)
-                                        <option value="{{ $customer->id }}">{{ $customer->number . ' - ' . $customer->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                @if(auth()->user()->role === 'nasabah')
+                                    <!-- Pengguna adalah nasabah -->
+                                    <div class="col-12 col-md-3"></div>
+                                @else
+                                    <div class="col-12 col-md-3">
+                                        <select class="form-control" name="customer">
+                                            <option value="">Semua Nasabah</option>
+                                            @foreach ($customers as $customer)
+                                            <option value="{{ $customer->id }}">{{ $customer->number . ' - ' . $customer->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+
                                 <div class="col-12 col-md-3">
                                     <select class="form-control" name="type">
                                         <option value="">Semua Jenis</option>
